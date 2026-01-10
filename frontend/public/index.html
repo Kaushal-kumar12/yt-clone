@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- =========================
+         BASIC META
+    ========================== -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+
+    <!-- =========================
+         BRANDING
+    ========================== -->
+    <title>YouTube Clone | Watch, Share & Discover Videos</title>
+
+    <meta
+      name="description"
+      content="A modern YouTube clone built with React, Node.js, and MongoDB. Watch videos, create playlists, like content, and enjoy smart autoplay & queue features."
+    />
+
+    <meta
+      name="keywords"
+      content="youtube clone, react video app, watch videos, playlists, video streaming app"
+    />
+
+    <meta name="author" content="Kaushal Kumar" />
+    <meta name="theme-color" content="#ff0000" />
+
+    <!-- =========================
+         ICONS
+    ========================== -->
+    <link rel="icon" href="logo1.png" />
+    <link
+      rel="apple-touch-icon"
+      sizes="192x192"
+      href="logo.png"
+    />
+
+    <!-- =========================
+         PWA
+    ========================== -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- =========================
+         OPEN GRAPH (Facebook, LinkedIn)
+    ========================== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="YouTube Clone" />
+    <meta
+      property="og:description"
+      content="Watch videos, manage playlists, and enjoy smart autoplay just like YouTube."
+    />
+    <meta property="og:image" content="%PUBLIC_URL%/preview.png" />
+    <meta property="og:url" content="https://your-vercel-domain.vercel.app" />
+
+    <!-- =========================
+         TWITTER CARD
+    ========================== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="YouTube Clone" />
+    <meta
+      name="twitter:description"
+      content="A modern video streaming platform built with React."
+    />
+    <meta name="twitter:image" content="%PUBLIC_URL%/preview.png" />
+
+    <!-- =========================
+         FONTS (FAST LOAD)
+    ========================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- =========================
+         BASE STYLES
+    ========================== -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: #ffffff;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, sans-serif;
+      }
+
+      #root {
+        min-height: 100%;
+      }
+
+      /* Loading fallback */
+      .app-loader {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #555;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>
+      <strong>
+        This application requires JavaScript to run. Please enable JavaScript in
+        your browser.
+      </strong>
+    </noscript>
+
+    <!-- React Root -->
+    <div id="root">
+      <div class="app-loader">Loading YouTube Clone…</div>
+    </div>
+  </body>
+</html>

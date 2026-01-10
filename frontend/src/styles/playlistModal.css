@@ -1,0 +1,49 @@
+/* overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* modal box */
+.modal {
+  background: #fff;
+  width: 320px;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* playlist row */
+.playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.playlist-item:hover {
+  background: #f1f1f1;
+}
+
+/* checkbox */
+.playlist-item input {
+  cursor: pointer;
+}
+
+/* create playlist row */
+.new-playlist {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.new-playlist input {
+  flex: 1;
+  padding: 6px;
+}

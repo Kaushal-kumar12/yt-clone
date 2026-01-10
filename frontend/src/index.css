@@ -1,0 +1,121 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #ffffff;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+
+/* PAGE */
+.watch-page {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 12px 24px; /* horizontal padding like YouTube */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* LEFT SIDE */
+.watch-main {
+  flex: 1;
+  min-width: 0; /* 🔥 CRITICAL FIX */
+}
+
+/* PLAYER */
+.player-container {
+  width: 100%;
+}
+
+.player-inner {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  background: black;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.player-inner iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* TITLE + ACTIONS */
+.title {
+  margin-top: 16px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+
+/* RIGHT SIDE */
+.suggested {
+  width: 420px;
+  flex-shrink: 0; /* 🔥 CRITICAL FIX */
+}
+
+.suggest-card {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.suggest-card img {
+  width: 160px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.suggest-info {
+  flex: 1;
+}
+
+.suggest-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.dots {
+  float: right;
+  font-size: 18px;
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 1024px) {
+  .watch-page {
+    flex-direction: column;
+  }
+
+  .suggested {
+    width: 100%;
+  }
+
+  .suggest-card img {
+    width: 120px;
+    height: 68px;
+  }
+}

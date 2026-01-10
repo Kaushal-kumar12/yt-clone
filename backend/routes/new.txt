@@ -1,0 +1,546 @@
+routes/
+
+activityroutes.js
+
+const express = require("express");
+const router = express.Router();
+const auth = require("../middleware/authMiddleware");
+const UserHistory = require("../models/UserHistory");
+
+/* =========================
+   SAVE WATCH HISTORY
+========================= */
+router.post("/watch", auth, async (req, res) => {
+  try {
+    const { videoId } = req.body;
+
+    if (!videoId) {
+      return res.status(400).json({ message: "Video ID required" });
+    }
+
+    // Prevent duplicate same-day entry
+    const today = new Date().toISOString().slice(0, 10);
+
+    const exists = await UserHistory.findOne({
+      user: req.user.id,
+      video: videoId,
+      createdAt: {
+        $gte: new Date(today),
+      },
+    });
+
+    if (!exists) {
+      await UserHistory.create({
+        user: req.user.id,
+        video: videoId,
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("WATCH HISTORY ERROR:", err);
+    res.status(500).json({ message: "Failed to save history" });
+  }
+});
+
+/* =========================
+   GET WATCH HISTORY
+========================= */
+router.get("/history", auth, async (req, res) => {
+  try {
+    const history = await UserHistory.find({ user: req.user.id })
+      .populate("video")
+      .sort({ createdAt: -1 });
+
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load history" });
+  }
+});
+
+module.exports = router;
+
+
+adminroutes.js
+
+const express = require("express");
+const router = express.Router();
+
+const auth = require("../middleware/authMiddleware");
+const admin = require("../middleware/adminMiddleware");
+
+const User = require("../models/User");
+const UserHistory = require("../models/UserHistory");
+const Playlist = require("../models/Playlist");
+const Like = require("../models/Like");
+
+/* =========================
+   USER MANAGEMENT
+========================= */
+
+// ✅ GET ALL USERS (ADMIN)
+router.get("/users", auth, admin, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load users" });
+  }
+});
+
+// ✅ BLOCK / UNBLOCK USER
+router.put("/block/:id", auth, admin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.blocked = !user.blocked;
+    await user.save();
+
+    res.json({
+      message: user.blocked ? "User blocked" : "User unblocked",
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update user" });
+  }
+});
+
+// ✅ CHANGE ROLE (USER ↔ ADMIN)
+router.put("/role/:id", auth, admin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.role = user.role === "admin" ? "user" : "admin";
+    await user.save();
+
+    res.json({
+      message: "Role updated",
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to change role" });
+  }
+});
+
+/* =========================
+   🔥 ADMIN VIEW USER ACTIVITY
+========================= */
+
+// ✅ GET FULL ACTIVITY OF ANY USER (ADMIN ONLY)
+router.get("/user/:id/activity", auth, admin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // WATCH HISTORY
+    const history = await UserHistory.find({ user: userId })
+      .populate("video")
+      .sort({ createdAt: -1 });
+
+    // PLAYLISTS
+    const playlists = await Playlist.find({ user: userId })
+      .populate("videos");
+
+    // LIKED VIDEOS
+    const likes = await Like.find({ user: userId })
+      .populate("video");
+
+    res.json({
+      history,
+      playlists,
+      likes,
+    });
+  } catch (err) {
+    console.error("ADMIN ACTIVITY ERROR:", err);
+    res.status(500).json({ message: "Failed to load user activity" });
+  }
+});
+
+module.exports = router;
+
+
+
+authroutes.js
+
+const express = require("express");
+const router = express.Router();
+const { register, login } = require("../controllers/authController");
+
+// Register
+router.post("/register", register);
+
+// Login
+router.post("/login", login);
+
+module.exports = router;
+
+
+
+channelroutes.js
+
+const express = require("express");
+const Channel = require("../models/Channel");
+const auth = require("../middleware/authMiddleware");
+const admin = require("../middleware/adminMiddleware");
+
+const router = express.Router();
+
+/* 🔹 Create channel (admin only) */
+router.post("/", auth, admin, async (req, res) => {
+  try {
+    const channel = await Channel.create(req.body);
+    res.json(channel);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to create channel" });
+  }
+});
+
+/* 🔹 Get all channels (admin only) */
+router.get("/", auth, admin, async (req, res) => {
+  try {
+    const channels = await Channel.find();
+    res.json(channels);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch channels" });
+  }
+});
+
+module.exports = router;
+
+
+
+commentroutes.js
+
+const express = require("express");
+const Comment = require("../models/Comment");
+const auth = require("../middleware/authMiddleware");
+const admin = require("../middleware/adminMiddleware");
+
+const router = express.Router();
+
+// DELETE COMMENT
+router.delete("/:id", auth, admin, async (req, res) => {
+  await Comment.findByIdAndDelete(req.params.id);
+  res.json({ message: "Comment deleted" });
+});
+
+module.exports = router;
+
+
+
+historyroutes.js
+
+const express = require("express");
+const router = express.Router();
+const UserHistory = require("../models/UserHistory");
+
+/**
+ * Save watch history
+ */
+router.post("/", async (req, res) => {
+  try {
+    const { userId, videoId, category } = req.body;
+
+    await UserHistory.create({
+      userId,
+      videoId,
+      category,
+    });
+
+    res.json({ message: "Watch history saved" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save history" });
+  }
+});
+
+module.exports = router;
+
+
+
+likeroutes.js
+
+const express = require("express");
+const router = express.Router();
+const auth = require("../middleware/authMiddleware");
+const Like = require("../models/Like");
+
+/* TOGGLE LIKE */
+router.post("/", auth, async (req, res) => {
+  const { videoId } = req.body;
+
+  const existing = await Like.findOne({
+    user: req.user.id,
+    video: videoId,
+  });
+
+  if (existing) {
+    await Like.deleteOne({ _id: existing._id });
+    return res.json({ liked: false });
+  }
+
+  await Like.create({
+    user: req.user.id,
+    video: videoId,
+  });
+
+  res.json({ liked: true });
+});
+
+/* GET USER LIKED VIDEOS */
+router.get("/", auth, async (req, res) => {
+  const likes = await Like.find({ user: req.user.id })
+    .populate("video")
+    .sort({ createdAt: -1 });
+
+  res.json(likes);
+});
+
+module.exports = router;
+
+
+playslistroutes.js
+
+const express = require("express");
+const router = express.Router();
+const Playlist = require("../models/Playlist");
+const authMiddleware = require("../middleware/authMiddleware");
+
+/* =========================
+   GET USER PLAYLISTS
+========================= */
+router.get("/", authMiddleware, async (req, res) => {
+  const playlists = await Playlist.find({ user: req.user.id });
+  res.json(playlists);
+});
+
+/* =========================
+   CREATE PLAYLIST
+========================= */
+router.post("/", authMiddleware, async (req, res) => {
+  const playlist = new Playlist({
+    name: req.body.name,
+    user: req.user.id,
+    videos: req.body.videoId ? [req.body.videoId] : [],
+  });
+
+  await playlist.save();
+  res.json(playlist);
+});
+
+/* =========================
+   ADD VIDEO TO PLAYLIST
+========================= */
+router.post("/:id/add", authMiddleware, async (req, res) => {
+  const playlist = await Playlist.findOne({
+    _id: req.params.id,
+    user: req.user.id,
+  });
+
+  if (!playlist) {
+    return res.status(404).json({ message: "Playlist not found" });
+  }
+
+  if (!playlist.videos.includes(req.body.videoId)) {
+    playlist.videos.push(req.body.videoId);
+    await playlist.save();
+  }
+
+  res.json({ message: "Video added" });
+});
+
+/* =========================
+   REMOVE VIDEO FROM PLAYLIST ✅
+========================= */
+router.post("/:id/remove", authMiddleware, async (req, res) => {
+  const playlist = await Playlist.findOne({
+    _id: req.params.id,
+    user: req.user.id,
+  });
+
+  if (!playlist) {
+    return res.status(404).json({ message: "Playlist not found" });
+  }
+
+  playlist.videos = playlist.videos.filter(
+    (v) => v.toString() !== req.body.videoId
+  );
+
+  await playlist.save();
+  res.json({ message: "Video removed" });
+});
+
+/* =========================
+   GET SINGLE PLAYLIST
+========================= */
+router.get("/:id", authMiddleware, async (req, res) => {
+  const playlist = await Playlist.findOne({
+    _id: req.params.id,
+    user: req.user.id, // 🔒 user-separated
+  }).populate("videos");
+
+  if (!playlist) {
+    return res.status(404).json({ message: "Playlist not found" });
+  }
+
+  res.json(playlist);
+});
+
+
+module.exports = router;
+
+
+usractivityoutes.js
+
+const router = require("express").Router();
+const auth = require("../middleware/authMiddleware");
+const {
+  addWatchHistory,
+  toggleLike,
+  getLikedVideos
+} = require("../controllers/userActivityController");
+
+router.post("/watch", auth, addWatchHistory);
+router.post("/like", auth, toggleLike);
+router.get("/likes", auth, getLikedVideos);
+
+module.exports = router;
+
+
+
+videoroutes.js
+
+const express = require("express");
+const Video = require("../models/Video");
+const auth = require("../middleware/authMiddleware");
+const admin = require("../middleware/adminMiddleware");
+
+const router = express.Router();
+
+/* =========================
+   YOUTUBE ID CLEANER (🔥 FIX)
+========================= */
+function extractYouTubeId(input) {
+  if (!input) return "";
+
+  // Full URL
+  if (input.includes("youtube.com")) {
+    try {
+      return new URL(input).searchParams.get("v");
+    } catch {
+      return "";
+    }
+  }
+
+  // Short URL
+  if (input.includes("youtu.be")) {
+    return input.split("youtu.be/")[1].split("?")[0];
+  }
+
+  // Already ID
+  return input.split("&")[0];
+}
+
+/* =========================
+   ADMIN
+========================= */
+
+// ADD VIDEO
+router.post("/", auth, admin, async (req, res) => {
+  try {
+    // 🔥 CLEAN YOUTUBE ID HERE
+    req.body.youtubeId = extractYouTubeId(req.body.youtubeId);
+
+    if (!req.body.youtubeId) {
+      return res.status(400).json({ message: "Invalid YouTube ID" });
+    }
+
+    const video = await Video.create(req.body);
+    res.json(video);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to upload video" });
+  }
+});
+
+// DELETE VIDEO
+router.delete("/:id", auth, admin, async (req, res) => {
+  await Video.findByIdAndDelete(req.params.id);
+  res.json({ message: "Video deleted" });
+});
+
+// ADMIN – GET ALL VIDEOS
+router.get("/admin/all", auth, admin, async (req, res) => {
+  const videos = await Video.find().populate("channel");
+  res.json(videos);
+});
+
+/* =========================
+   PUBLIC / USER
+========================= */
+
+// HOME FEED
+router.get("/home", async (req, res) => {
+  const videos = await Video.find()
+    .populate("channel")
+    .sort({ createdAt: -1 });
+
+  res.json(videos);
+});
+
+// SINGLE VIDEO
+router.get("/:id", async (req, res) => {
+  const video = await Video.findById(req.params.id).populate("channel");
+  if (!video) return res.status(404).json({ message: "Video not found" });
+  res.json(video);
+});
+
+module.exports = router;
+
+
+
+server.js
+
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+const connectDB = require("./config/db");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+connectDB();
+
+// AUTH
+app.use("/api/auth", require("./routes/authRoutes"));
+
+// VIDEOS
+app.use("/api/videos", require("./routes/videoRoutes"));
+
+// CHANNELS
+app.use("/api/channels", require("./routes/channelRoutes"));
+
+// COMMENTS
+app.use("/api/comments", require("./routes/commentRoutes"));
+
+// PLAYLISTS
+app.use("/api/playlists", require("./routes/playlistRoutes"));
+
+// WATCH HISTORY
+app.use("/api/activity", require("./routes/activityRoutes"));
+
+// LIKES
+app.use("/api/likes", require("./routes/likeRoutes"));
+
+// RECOMMENDATION
+app.use("/api/recommend", require("./routes/recommendRoutes"));
+
+// ADMIN
+app.use("/api/admin", require("./routes/adminRoutes"));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ Backend running on port ${PORT}`);
+});

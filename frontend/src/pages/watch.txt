@@ -1,0 +1,374 @@
+import { useEffect, useRef, useState, useCallback } from "react";
+import {
+  useParams,
+  useNavigate,
+  useOutletContext,
+  useSearchParams,
+} from "react-router-dom";
+import axios from "axios";
+import PlaylistModal from "../components/PlaylistModal";
+import ThreeDotMenu from "../components/ThreeDotMenu";
+
+/* =====================
+   HELPERS (PERSISTENCE)
+===================== */
+const getSuggestedIndex = () =>
+  Number(sessionStorage.getItem("suggestedIndex") || 0);
+
+const setSuggestedIndex = (i) =>
+  sessionStorage.setItem("suggestedIndex", String(i));
+
+const getQueue = () =>
+  JSON.parse(sessionStorage.getItem("queue") || "[]");
+
+const setQueueStorage = (q) =>
+  sessionStorage.setItem("queue", JSON.stringify(q));
+
+export default function Watch() {
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const playlistId = searchParams.get("playlist");
+
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  const outletContext = useOutletContext() || {};
+  const setShowSidebar = outletContext.setShowSidebar;
+
+  const playerRef = useRef(null);
+
+  /* =====================
+     STATE
+  ===================== */
+  const [video, setVideo] = useState(null);
+  const [suggested, setSuggested] = useState([]);
+  const [playlistVideos, setPlaylistVideos] = useState([]);
+
+  const [queue, setQueue] = useState(getQueue());
+
+  const [liked, setLiked] = useState(false);
+
+  const [showPlaylist, setShowPlaylist] = useState(false);
+  const [selectedVideoId, setSelectedVideoId] = useState(null);
+
+  const [autoplay, setAutoplay] = useState(
+    localStorage.getItem("autoplay") !== "off"
+  );
+
+  const [loopPlaylist, setLoopPlaylist] = useState(
+    localStorage.getItem("loopPlaylist") === "on"
+  );
+
+  /* =====================
+     SYNC QUEUE STORAGE
+  ===================== */
+  useEffect(() => {
+    setQueueStorage(queue);
+  }, [queue]);
+
+  /* =====================
+     SAVE TO PLAYLIST
+  ===================== */
+  const openSave = (videoId) => {
+    setSelectedVideoId(videoId);
+    setShowPlaylist(true);
+  };
+
+  /* =====================
+     LIKE
+  ===================== */
+  useEffect(() => {
+    if (!token || !video) return;
+
+    axios
+      .get("http://localhost:5000/api/likes", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) =>
+        setLiked(res.data.some((l) => l.video?._id === video._id))
+      );
+  }, [video, token]);
+
+  const likeVideo = async () => {
+    await axios.post(
+      "http://localhost:5000/api/likes",
+      { videoId: video._id },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setLiked((p) => !p);
+  };
+
+  /* =====================
+     SIDEBAR
+  ===================== */
+  useEffect(() => {
+    if (typeof setShowSidebar === "function") {
+      setShowSidebar(false);
+      return () => setShowSidebar(true);
+    }
+  }, [setShowSidebar]);
+
+  /* =====================
+     LOAD VIDEO
+  ===================== */
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/api/videos/${id}`)
+      .then((res) => setVideo(res.data))
+      .catch(() => setVideo(null));
+  }, [id]);
+
+  /* =====================
+     LOAD SUGGESTED
+  ===================== */
+  useEffect(() => {
+    if (playlistId) return;
+
+    axios.get("http://localhost:5000/api/videos/home").then((res) => {
+      setSuggested(res.data.filter((v) => v._id !== id));
+    });
+  }, [id, playlistId]);
+
+  /* =====================
+     LOAD PLAYLIST
+  ===================== */
+  useEffect(() => {
+    if (!playlistId) return;
+
+    axios
+      .get(`http://localhost:5000/api/playlists/${playlistId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setPlaylistVideos(res.data.videos));
+  }, [playlistId, token]);
+
+  /* =====================
+     QUEUE (FIXED)
+  ===================== */
+  const addToQueue = (v) => {
+    setQueue((prev) => {
+      if (prev.some((x) => x._id === v._id)) return prev;
+      const next = [...prev, v];
+      setQueueStorage(next);
+      return next;
+    });
+  };
+
+  /* =====================
+     AUTOPLAY NEXT (FINAL)
+  ===================== */
+  const handleAutoPlayNext = useCallback(() => {
+    if (!autoplay) return;
+
+    /* 🔥 QUEUE FIRST (NORMAL MODE ONLY) */
+    if (!playlistId && queue.length > 0) {
+      const [next, ...rest] = queue;
+      setQueueStorage(rest);
+      navigate(`/watch/${next._id}`);
+      return;
+    }
+
+    /* 🔁 PLAYLIST */
+    if (playlistId && playlistVideos.length > 0) {
+      const index = playlistVideos.findIndex((v) => v._id === id);
+      let next = playlistVideos[index + 1];
+
+      if (!next && loopPlaylist) {
+        next = playlistVideos[0];
+      }
+
+      if (next) {
+        navigate(`/watch/${next._id}?playlist=${playlistId}`);
+      }
+      return;
+    }
+
+    /* ▶ NORMAL */
+    if (suggested.length > 0) {
+      const nextIndex =
+        (getSuggestedIndex() + 1) % suggested.length;
+      setSuggestedIndex(nextIndex);
+      navigate(`/watch/${suggested[nextIndex]._id}`);
+    }
+  }, [
+    autoplay,
+    playlistId,
+    playlistVideos,
+    loopPlaylist,
+    id,
+    suggested,
+    navigate,
+    queue,
+  ]);
+
+  /* =====================
+     RESET INDEX
+  ===================== */
+  useEffect(() => {
+    if (playlistId) {
+      sessionStorage.removeItem("suggestedIndex");
+    }
+  }, [playlistId]);
+
+  /* =====================
+     YOUTUBE PLAYER
+  ===================== */
+  useEffect(() => {
+    if (!video) return;
+
+    const createPlayer = () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+
+      playerRef.current = new window.YT.Player("yt-player", {
+        videoId: video.youtubeId,
+        playerVars: { autoplay: 1, rel: 0 },
+        events: {
+          onStateChange: (e) => {
+            if (e.data === window.YT.PlayerState.ENDED) {
+              handleAutoPlayNext();
+            }
+          },
+        },
+      });
+    };
+
+    if (!window.YT) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.body.appendChild(tag);
+      window.onYouTubeIframeAPIReady = createPlayer;
+    } else {
+      createPlayer();
+    }
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [video?.youtubeId]);
+
+  /* =====================
+     UP NEXT
+  ===================== */
+  const upNext = (() => {
+    if (!playlistId && queue.length > 0) return queue[0];
+
+    if (playlistId && playlistVideos.length > 0) {
+      const index = playlistVideos.findIndex((v) => v._id === id);
+      return playlistVideos[index + 1] || null;
+    }
+
+    return suggested[getSuggestedIndex() + 1] || suggested[0] || null;
+  })();
+
+  if (!video) return <p style={{ padding: 20 }}>Video unavailable</p>;
+
+  return (
+    <>
+      <div className="watch-page">
+        <div className="watch-main">
+          <div className="player-container">
+            <div className="player-inner">
+              <div id="yt-player" />
+            </div>
+          </div>
+
+          {upNext && autoplay && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: 12,
+                border: "1px solid #e5e7eb",
+                borderRadius: 8,
+                display: "flex",
+                gap: 12,
+                cursor: "pointer",
+              }}
+              onClick={() =>
+                navigate(
+                  playlistId
+                    ? `/watch/${upNext._id}?playlist=${playlistId}`
+                    : `/watch/${upNext._id}`
+                )
+              }
+            >
+              <img
+                src={`https://img.youtube.com/vi/${upNext.youtubeId}/mqdefault.jpg`}
+                alt={upNext.title}
+                width="120"
+              />
+              <div>
+                <p style={{ fontSize: 12, color: "#6b7280" }}>Up next</p>
+                <p style={{ fontWeight: 500 }}>{upNext.title}</p>
+              </div>
+            </div>
+          )}
+
+          <h1 className="title">{video.title}</h1>
+
+          <div className="actions">
+            <button onClick={likeVideo}>
+              👍 {liked ? "Liked" : "Like"}
+            </button>
+
+            <button onClick={() => setAutoplay((p) => !p)}>
+              🔁 Autoplay {autoplay ? "On" : "Off"}
+            </button>
+
+            {playlistId && (
+              <button onClick={() => setLoopPlaylist((p) => !p)}>
+                🔁 Loop {loopPlaylist ? "On" : "Off"}
+              </button>
+            )}
+
+            <button onClick={() => openSave(video._id)}>💾 Save</button>
+          </div>
+        </div>
+
+        <div className="suggested">
+          <h3>{playlistId ? "Playlist" : "Suggested"}</h3>
+
+          {(playlistId ? playlistVideos : suggested).map((v) => (
+            <div
+              key={v._id}
+              className="suggest-card"
+              onClick={() =>
+                navigate(
+                  playlistId
+                    ? `/watch/${v._id}?playlist=${playlistId}`
+                    : `/watch/${v._id}`
+                )
+              }
+            >
+              <img
+                src={`https://img.youtube.com/vi/${v.youtubeId}/mqdefault.jpg`}
+                alt={v.title}
+              />
+              <div className="suggest-info">
+                <p className="suggest-title">{v.title}</p>
+                {!playlistId && (
+                  <ThreeDotMenu
+                    onSave={() => openSave(v._id)}
+                    onQueue={() => addToQueue(v)}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showPlaylist && (
+        <PlaylistModal
+          videoId={selectedVideoId}
+          onClose={() => setShowPlaylist(false)}
+        />
+      )}
+    </>
+  );
+}

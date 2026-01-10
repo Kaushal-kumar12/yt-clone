@@ -1,0 +1,46 @@
+/* ===== SIDEBAR CONTAINER ===== */
+.sidebar {
+  width: 220px;
+  height: 100vh;
+  padding: 16px 12px;
+  background: #ffffff;
+  border-right: 1px solid #e5e5e5;
+  box-sizing: border-box;
+}
+
+/* ===== LINKS ===== */
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #0f0f0f;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.sidebar a:hover {
+  background: #f2f2f2;
+}
+
+/* ===== USER INFO (MOBILE) ===== */
+.sidebar-user {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* ===== LOGOUT BUTTON ===== */
+.sidebar-logout {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 14px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
