@@ -22,9 +22,9 @@ export default function AdminDashboard() {
     async function loadStats() {
       try {
         const [usersRes, channelsRes, videosRes] = await Promise.all([
-          axios.get("https://yt-clone-rust.vercel.app/api/admin/users", { headers }),
-          axios.get("https://yt-clone-rust.vercel.app/api/channels", { headers }),
-          axios.get("https://yt-clone-rust.vercel.app/api/videos/admin/all", { headers }),
+          axios.get("/admin/users", { headers }),
+          axios.get("/channels", { headers }),
+          axios.get("/videos/admin/all", { headers }),
         ]);
 
         const users = usersRes.data || [];

@@ -1,43 +1,29 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "https://yt-clone-rust.vercel.app/api",
+  baseURL:
+    process.env.REACT_APP_API_URL ||
+    "http://localhost:5000/api",
 });
 
-/* =========================
-   REQUEST INTERCEPTOR
-========================= */
-instance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
+// attach token
+instance.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-/* =========================
-   RESPONSE INTERCEPTOR
-   🔥 AUTO LOGOUT ON 401
-========================= */
+// force logout on token expiry
 instance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // 🔐 Token expired or invalid
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
       localStorage.clear();
-
-      // Prevent infinite redirect loop
-      if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
-      }
+      window.location.href = "/login";
     }
-
-    return Promise.reject(error);
+    return Promise.reject(err);
   }
 );
 

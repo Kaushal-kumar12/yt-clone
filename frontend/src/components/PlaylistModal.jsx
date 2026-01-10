@@ -14,7 +14,7 @@ export default function PlaylistModal({ videoId, onClose }) {
   ===================== */
   useEffect(() => {
     axios
-      .get("https://yt-clone-rust.vercel.app/api/playlists", {
+      .get("/playlists", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setPlaylists(res.data))
@@ -34,14 +34,14 @@ export default function PlaylistModal({ videoId, onClose }) {
       if (hasVideo) {
         // REMOVE
         await axios.post(
-          `https://yt-clone-rust.vercel.app/api/playlists/${playlist._id}/remove`,
+          `/playlists/${playlist._id}/remove`,
           { videoId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         // ADD
         await axios.post(
-          `https://yt-clone-rust.vercel.app/api/playlists/${playlist._id}/add`,
+          `/playlists/${playlist._id}/add`,
           { videoId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -72,7 +72,7 @@ export default function PlaylistModal({ videoId, onClose }) {
     if (!newName.trim()) return;
 
     const res = await axios.post(
-      "https://yt-clone-rust.vercel.app/api/playlists",
+      "/playlists",
       { name: newName, videoId },
       { headers: { Authorization: `Bearer ${token}` } }
     );

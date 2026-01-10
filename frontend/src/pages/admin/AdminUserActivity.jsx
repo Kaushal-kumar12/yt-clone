@@ -22,7 +22,7 @@ export default function AdminUserActivity() {
   /* ✅ FIX: memoized function */
   const loadActivity = useCallback(async () => {
     const res = await axios.get(
-      `https://yt-clone-rust.vercel.app/api/admin/user/${id}/activity`,
+      `/admin/user/${id}/activity`,
       { headers }
     );
 

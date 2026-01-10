@@ -34,7 +34,7 @@ export default function Search() {
     setLoading(true);
 
     axios
-      .get(`https://yt-clone-rust.vercel.app/api/videos/search?q=${query}`)
+      .get(`/videos/search?q=${query}`)
       .then((res) => setResults(res.data))
       .catch(() => setResults([]))
       .finally(() => setLoading(false));

@@ -23,7 +23,7 @@ export default function AdminUsers() {
   const loadUsers = useCallback(async () => {
     try {
       const res = await axios.get(
-        "https://yt-clone-rust.vercel.app/api/admin/users",
+        "/admin/users",
         { headers }
       );
       setUsers(res.data);
@@ -42,7 +42,7 @@ export default function AdminUsers() {
   const updateRole = async (user, newRole) => {
     try {
       await axios.put(
-        `https://yt-clone-rust.vercel.app/api/admin/role/${user._id}`,
+        `/admin/role/${user._id}`,
         { role: newRole },
         { headers }
       );
@@ -58,7 +58,7 @@ export default function AdminUsers() {
   const updateStatus = async (user) => {
     try {
       await axios.put(
-        `https://yt-clone-rust.vercel.app/api/admin/block/${user._id}`,
+        `/admin/block/${user._id}`,
         {},
         { headers }
       );

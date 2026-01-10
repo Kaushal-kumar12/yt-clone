@@ -9,7 +9,7 @@ export default function History() {
 
   useEffect(() => {
     axios
-      .get("https://yt-clone-rust.vercel.app/api/activity/history", {
+      .get("/activity/history", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(res => setHistory(res.data))

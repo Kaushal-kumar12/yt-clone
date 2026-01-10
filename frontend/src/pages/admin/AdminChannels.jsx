@@ -24,7 +24,7 @@ export default function AdminChannels() {
   ====================== */
   const loadChannels = useCallback(() => {
     axios
-      .get("https://yt-clone-rust.vercel.app/api/channels", { headers })
+      .get("/channels", { headers })
       .then((res) => setChannels(res.data))
       .catch(() => setChannels([]));
   }, [headers]);
@@ -40,7 +40,7 @@ export default function AdminChannels() {
     if (!name.trim()) return alert("Channel name required");
 
     await axios.post(
-      "https://yt-clone-rust.vercel.app/api/channels",
+      "/channels",
       { name },
       { headers }
     );
@@ -57,7 +57,7 @@ export default function AdminChannels() {
     if (!newName) return;
 
     await axios.put(
-      `https://yt-clone-rust.vercel.app/api/channels/${channel._id}`,
+      `/channels/${channel._id}`,
       { name: newName },
       { headers }
     );
@@ -71,7 +71,7 @@ export default function AdminChannels() {
   const deleteChannel = async (channel) => {
     try {
       await axios.delete(
-        `https://yt-clone-rust.vercel.app/api/channels/${channel._id}`,
+        `/channels/${channel._id}`,
         { headers }
       );
 
@@ -85,7 +85,7 @@ export default function AdminChannels() {
 
         if (ok) {
           await axios.delete(
-            `https://yt-clone-rust.vercel.app/api/channels/${channel._id}?force=true`,
+            `/channels/${channel._id}?force=true`,
             { headers }
           );
           loadChannels();

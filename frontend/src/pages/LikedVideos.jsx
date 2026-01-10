@@ -16,7 +16,7 @@ export default function LikedVideos() {
   const loadLikes = useCallback(async () => {
     try {
       const res = await axios.get(
-        "https://yt-clone-rust.vercel.app/api/likes",
+        "/likes",
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -41,7 +41,7 @@ export default function LikedVideos() {
   ========================= */
   const removeLike = async (videoId) => {
     await axios.post(
-      "https://yt-clone-rust.vercel.app/api/likes",
+      "/likes",
       { videoId },
       { headers: { Authorization: `Bearer ${token}` } }
     );
