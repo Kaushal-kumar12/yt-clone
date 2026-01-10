@@ -34,7 +34,7 @@ export default function AdminChannelDetail() {
   ====================== */
   const loadChannel = useCallback(async () => {
     const res = await axios.get(
-      "http://localhost:5000/api/channels",
+      "https://yt-clone-rust.vercel.app/api/channels",
       { headers }
     );
     const found = res.data.find((c) => c._id === channelId);
@@ -46,7 +46,7 @@ export default function AdminChannelDetail() {
   ====================== */
   const loadVideos = useCallback(async () => {
     const res = await axios.get(
-      `http://localhost:5000/api/videos/admin/channel/${channelId}`,
+      `https://yt-clone-rust.vercel.app/api/videos/admin/channel/${channelId}`,
       { headers }
     );
     setVideos(res.data);
@@ -84,7 +84,7 @@ export default function AdminChannelDetail() {
     }
 
     await axios.put(
-      `http://localhost:5000/api/videos/${editingId}`,
+      `https://yt-clone-rust.vercel.app/api/videos/${editingId}`,
       {
         title,
         youtubeId,
@@ -102,7 +102,7 @@ export default function AdminChannelDetail() {
     if (!window.confirm("Delete this video?")) return;
 
     await axios.delete(
-      `http://localhost:5000/api/videos/${id}`,
+      `https://yt-clone-rust.vercel.app/api/videos/${id}`,
       { headers }
     );
     loadVideos();
@@ -110,7 +110,7 @@ export default function AdminChannelDetail() {
 
   const togglePublish = async (id) => {
     await axios.put(
-      `http://localhost:5000/api/videos/${id}/publish`,
+      `https://yt-clone-rust.vercel.app//api/videos/${id}/publish`,
       {},
       { headers }
     );

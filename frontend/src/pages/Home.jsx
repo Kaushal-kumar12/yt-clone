@@ -10,7 +10,7 @@ const Home = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/videos/home")
+      .get("https://yt-clone-rust.vercel.app/api/videos/home")
       .then(res => setVideos(res.data))
       .catch(err => console.error(err));
   }, []);

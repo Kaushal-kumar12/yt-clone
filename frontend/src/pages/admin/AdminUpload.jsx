@@ -52,7 +52,7 @@ export default function AdminUpload() {
   ====================== */
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/channels", { headers })
+      .get("https://yt-clone-rust.vercel.app/api/channels", { headers })
       .then((res) => setChannels(res.data))
       .catch(() => setChannels([]));
   }, [headers]);
@@ -62,7 +62,7 @@ export default function AdminUpload() {
   ====================== */
   const loadVideos = useCallback(() => {
     axios
-      .get("http://localhost:5000/api/videos/admin/all", { headers })
+      .get("https://yt-clone-rust.vercel.app/api/videos/admin/all", { headers })
       .then((res) => setVideos(res.data))
       .catch(() => setVideos([]));
   }, [headers]);
@@ -90,13 +90,13 @@ export default function AdminUpload() {
 
     if (editingId) {
       await axios.put(
-        `http://localhost:5000/api/videos/${editingId}`,
+        `https://yt-clone-rust.vercel.app/api/videos/${editingId}`,
         payload,
         { headers }
       );
     } else {
       await axios.post(
-        "http://localhost:5000/api/videos",
+        "https://yt-clone-rust.vercel.app/api/videos",
         payload,
         { headers }
       );
@@ -135,7 +135,7 @@ export default function AdminUpload() {
     if (!window.confirm("Delete this video?")) return;
 
     await axios.delete(
-      `http://localhost:5000/api/videos/${id}`,
+      `https://yt-clone-rust.vercel.app/api/videos/${id}`,
       { headers }
     );
 
@@ -144,7 +144,7 @@ export default function AdminUpload() {
 
   const togglePublish = async (id) => {
     await axios.put(
-      `http://localhost:5000/api/videos/${id}/publish`,
+      `https://yt-clone-rust.vercel.app/api/videos/${id}/publish`,
       {},
       { headers }
     );

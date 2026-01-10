@@ -116,7 +116,7 @@ export default function Watch() {
   ===================== */
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/videos/${id}`)
+      .get(`https://yt-clone-rust.vercel.app/api/videos/${id}`)
       .then((res) => setVideo(res.data))
       .catch(() => setVideo(null));
   }, [id]);
@@ -136,7 +136,7 @@ export default function Watch() {
     if (playlistId) return;
 
     axios
-      .get("http://localhost:5000/api/videos/home")
+      .get("https://yt-clone-rust.vercel.app/api/videos/home")
       .then((res) =>
         setSuggested(res.data.filter((v) => v._id !== id))
       );
@@ -149,7 +149,7 @@ export default function Watch() {
     if (!playlistId) return;
 
     axios
-      .get(`http://localhost:5000/api/playlists/${playlistId}`, {
+      .get(`https://yt-clone-rust.vercel.app/api/playlists/${playlistId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setPlaylistVideos(res.data.videos));
@@ -162,7 +162,7 @@ export default function Watch() {
     if (!token || !video) return;
 
     axios
-      .get("http://localhost:5000/api/likes", {
+      .get("https://yt-clone-rust.vercel.app/api/likes", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) =>
@@ -172,7 +172,7 @@ export default function Watch() {
 
   const likeVideo = async () => {
     await axios.post(
-      "http://localhost:5000/api/likes",
+      "https://yt-clone-rust.vercel.app/api/likes",
       { videoId: video._id },
       { headers: { Authorization: `Bearer ${token}` } }
     );

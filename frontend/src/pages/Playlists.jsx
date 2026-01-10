@@ -11,7 +11,7 @@ export default function Playlists() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/playlists", {
+      .get("https://yt-clone-rust.vercel.app/api/playlists", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {

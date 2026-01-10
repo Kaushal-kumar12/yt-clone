@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const loginUser = (data) =>
-  axios.post("http://localhost:5000/api/auth/login", data);
+  axios.post("https://yt-clone-rust.vercel.app/api/auth/login", data);
 
 export const registerUser = (data) =>
-  axios.post("http://localhost:5000/api/auth/register", data);
+  axios.post("https://yt-clone-rust.vercel.app/api/auth/register", data);

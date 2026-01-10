@@ -15,7 +15,7 @@ export default function Playlists() {
      LOAD ALL PLAYLISTS
   ========================= */
   const loadPlaylists = useCallback(async () => {
-    const res = await axios.get("http://localhost:5000/api/playlists", {
+    const res = await axios.get("https://yt-clone-rust.vercel.app/api/playlists", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setPlaylists(res.data);
@@ -28,7 +28,7 @@ export default function Playlists() {
     if (!id) return;
 
     const res = await axios.get(
-      `http://localhost:5000/api/playlists/${id}`,
+      `https://yt-clone-rust.vercel.app/api/playlists/${id}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -50,7 +50,7 @@ export default function Playlists() {
   ========================= */
   const removeFromPlaylist = async (videoId) => {
     await axios.post(
-      "http://localhost:5000/api/playlists/remove",
+      "https://yt-clone-rust.vercel.app/api/playlists/remove",
       { playlistId: id, videoId },
       { headers: { Authorization: `Bearer ${token}` } }
     );

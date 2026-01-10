@@ -12,7 +12,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://yt-frontend.vercel.app", // update after deploy
+      "https://yt-clone-rust.vercel.app/", // update after deploy
     ],
     credentials: true,
   })
