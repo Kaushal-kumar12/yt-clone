@@ -5,10 +5,29 @@ const connectDB = require("./config/db");
 
 const app = express();
 
-app.use(cors());
+/* ======================
+   MIDDLEWARE
+====================== */
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://yt-frontend.vercel.app", // update after deploy
+    ],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
+/* ======================
+   DATABASE
+====================== */
 connectDB();
+
+/* ======================
+   ROUTES
+====================== */
 
 // AUTH
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -36,11 +55,16 @@ app.use("/api/recommend", require("./routes/recommendRoutes"));
 
 // ADMIN
 app.use("/api/admin", require("./routes/adminRoutes"));
-
 app.use("/api/admin", require("./routes/adminUserRoutes"));
 
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`✅ Backend running on port ${PORT}`);
+/* ======================
+   HEALTH CHECK (OPTIONAL)
+====================== */
+app.get("/", (req, res) => {
+  res.json({ status: "Backend running 🚀" });
 });
+
+/* ======================
+   EXPORT FOR VERCEL
+====================== */
+module.exports = app;
