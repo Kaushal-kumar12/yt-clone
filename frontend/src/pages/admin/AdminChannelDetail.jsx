@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../../api/axios";
 import ThreeDotMenu from "../../components/ThreeDotMenu";
 import "../../styles/admin.css";
 
@@ -33,7 +33,7 @@ export default function AdminChannelDetail() {
      LOAD CHANNEL
   ====================== */
   const loadChannel = useCallback(async () => {
-    const res = await axios.get(
+    const res = await api.get(
       "/channels",
       { headers }
     );
@@ -45,7 +45,7 @@ export default function AdminChannelDetail() {
      LOAD VIDEOS
   ====================== */
   const loadVideos = useCallback(async () => {
-    const res = await axios.get(
+    const res = await api.get(
       `/videos/admin/channel/${channelId}`,
       { headers }
     );
@@ -83,7 +83,7 @@ export default function AdminChannelDetail() {
       return;
     }
 
-    await axios.put(
+    await api.put(
       `/videos/${editingId}`,
       {
         title,
@@ -101,7 +101,7 @@ export default function AdminChannelDetail() {
   const deleteVideo = async (id) => {
     if (!window.confirm("Delete this video?")) return;
 
-    await axios.delete(
+    await api.delete(
       `/videos/${id}`,
       { headers }
     );
@@ -109,7 +109,7 @@ export default function AdminChannelDetail() {
   };
 
   const togglePublish = async (id) => {
-    await axios.put(
+    await api.put(
       `/videos/${id}/publish`,
       {},
       { headers }

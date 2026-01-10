@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../../api/axios";
 import "../../styles/admin.css";
 
 export default function AdminUserActivity() {
@@ -21,7 +21,7 @@ export default function AdminUserActivity() {
 
   /* ✅ FIX: memoized function */
   const loadActivity = useCallback(async () => {
-    const res = await axios.get(
+    const res = await api.get(
       `/admin/user/${id}/activity`,
       { headers }
     );

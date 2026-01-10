@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../api/axios";
 import "../../styles/admin.css";
 
 export default function AdminUsers() {
@@ -22,7 +22,7 @@ export default function AdminUsers() {
   ====================== */
   const loadUsers = useCallback(async () => {
     try {
-      const res = await axios.get(
+      const res = await api.get(
         "/admin/users",
         { headers }
       );
@@ -41,7 +41,7 @@ export default function AdminUsers() {
   ====================== */
   const updateRole = async (user, newRole) => {
     try {
-      await axios.put(
+      await api.put(
         `/admin/role/${user._id}`,
         { role: newRole },
         { headers }
@@ -57,7 +57,7 @@ export default function AdminUsers() {
   ====================== */
   const updateStatus = async (user) => {
     try {
-      await axios.put(
+      await api.put(
         `/admin/block/${user._id}`,
         {},
         { headers }

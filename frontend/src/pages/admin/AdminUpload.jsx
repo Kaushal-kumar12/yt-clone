@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
+import api from "../../api/axios";
 import ThreeDotMenu from "../../components/ThreeDotMenu";
 
 export default function AdminUpload() {
@@ -51,7 +51,7 @@ export default function AdminUpload() {
      LOAD CHANNELS
   ====================== */
   useEffect(() => {
-    axios
+    api
       .get("/channels", { headers })
       .then((res) => setChannels(res.data))
       .catch(() => setChannels([]));
@@ -61,7 +61,7 @@ export default function AdminUpload() {
      LOAD VIDEOS
   ====================== */
   const loadVideos = useCallback(() => {
-    axios
+    api
       .get("/videos/admin/all", { headers })
       .then((res) => setVideos(res.data))
       .catch(() => setVideos([]));
@@ -89,13 +89,13 @@ export default function AdminUpload() {
     };
 
     if (editingId) {
-      await axios.put(
+      await api.put(
         `/videos/${editingId}`,
         payload,
         { headers }
       );
     } else {
-      await axios.post(
+      await api.post(
         "/videos",
         payload,
         { headers }
@@ -134,7 +134,7 @@ export default function AdminUpload() {
   const deleteVideo = async (id) => {
     if (!window.confirm("Delete this video?")) return;
 
-    await axios.delete(
+    await api.delete(
       `/videos/${id}`,
       { headers }
     );
@@ -143,7 +143,7 @@ export default function AdminUpload() {
   };
 
   const togglePublish = async (id) => {
-    await axios.put(
+    await api.put(
       `/videos/${id}/publish`,
       {},
       { headers }

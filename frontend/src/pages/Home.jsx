@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import VideoCard from "../components/VideoCard";
 
 const Home = () => {
@@ -9,7 +9,7 @@ const Home = () => {
   );
 
   useEffect(() => {
-    axios
+    api
       .get("/videos/home")
       .then(res => setVideos(res.data))
       .catch(err => console.error(err));

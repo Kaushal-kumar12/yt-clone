@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import "../../styles/admin.css";
 
 export default function AdminDashboard() {
@@ -22,9 +22,9 @@ export default function AdminDashboard() {
     async function loadStats() {
       try {
         const [usersRes, channelsRes, videosRes] = await Promise.all([
-          axios.get("/admin/users", { headers }),
-          axios.get("/channels", { headers }),
-          axios.get("/videos/admin/all", { headers }),
+          api.get("http://localhost:5000/api/admin/users", { headers }),
+          api.get("http://localhost:5000/api/channels", { headers }),
+          api.get("http://localhost:5000/api/videos/admin/all", { headers }),
         ]);
 
         const users = usersRes.data || [];

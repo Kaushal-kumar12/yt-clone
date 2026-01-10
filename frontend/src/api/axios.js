@@ -2,8 +2,7 @@ import axios from "axios";
 
 const instance = axios.create({
   baseURL:
-    process.env.REACT_APP_API_URL ||
-    "http://localhost:5000/api",
+    process.env.REACT_APP_API_URL || "http://localhost:5000/api",
 });
 
 // attach token
@@ -17,13 +16,13 @@ instance.interceptors.request.use((config) => {
 
 // force logout on token expiry
 instance.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
       localStorage.clear();
       window.location.href = "/login";
     }
-    return Promise.reject(err);
+    return Promise.reject(error);
   }
 );
 

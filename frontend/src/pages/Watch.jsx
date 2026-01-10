@@ -5,7 +5,7 @@ import {
   useOutletContext,
   useSearchParams,
 } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 import PlaylistModal from "../components/PlaylistModal";
 import ThreeDotMenu from "../components/ThreeDotMenu";
 
@@ -115,7 +115,7 @@ export default function Watch() {
      LOAD VIDEO
   ===================== */
   useEffect(() => {
-    axios
+    api
       .get(`/videos/${id}`)
       .then((res) => setVideo(res.data))
       .catch(() => setVideo(null));
@@ -135,7 +135,7 @@ export default function Watch() {
   useEffect(() => {
     if (playlistId) return;
 
-    axios
+    api
       .get("/videos/home")
       .then((res) =>
         setSuggested(res.data.filter((v) => v._id !== id))
@@ -148,7 +148,7 @@ export default function Watch() {
   useEffect(() => {
     if (!playlistId) return;
 
-    axios
+    api
       .get(`/playlists/${playlistId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -161,7 +161,7 @@ export default function Watch() {
   useEffect(() => {
     if (!token || !video) return;
 
-    axios
+    api
       .get("/likes", {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -171,7 +171,7 @@ export default function Watch() {
   }, [video, token]);
 
   const likeVideo = async () => {
-    await axios.post(
+    await api.post(
       "/likes",
       { videoId: video._id },
       { headers: { Authorization: `Bearer ${token}` } }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
 export default function History() {
@@ -8,7 +8,7 @@ export default function History() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
+    api
       .get("/activity/history", {
         headers: { Authorization: `Bearer ${token}` },
       })

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 import ThreeDotMenu from "../components/ThreeDotMenu";
 import PlaylistModal from "../components/PlaylistModal";
 
@@ -33,7 +33,7 @@ export default function Search() {
 
     setLoading(true);
 
-    axios
+    api
       .get(`/videos/search?q=${query}`)
       .then((res) => setResults(res.data))
       .catch(() => setResults([]))

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import ThreeDotMenu from "../components/ThreeDotMenu";
 
@@ -15,7 +15,7 @@ export default function LikedVideos() {
   ========================= */
   const loadLikes = useCallback(async () => {
     try {
-      const res = await axios.get(
+      const res = await api.get(
         "/likes",
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -40,7 +40,7 @@ export default function LikedVideos() {
      REMOVE LIKE
   ========================= */
   const removeLike = async (videoId) => {
-    await axios.post(
+    await api.post(
       "/likes",
       { videoId },
       { headers: { Authorization: `Bearer ${token}` } }

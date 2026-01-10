@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
 export default function Playlists() {
@@ -10,7 +10,7 @@ export default function Playlists() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
+    api
       .get("/playlists", {
         headers: { Authorization: `Bearer ${token}` },
       })

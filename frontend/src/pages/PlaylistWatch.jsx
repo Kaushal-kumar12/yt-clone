@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { useNavigate, useParams } from "react-router-dom";
 import ThreeDotMenu from "../components/ThreeDotMenu";
 
@@ -15,7 +15,7 @@ export default function Playlists() {
      LOAD ALL PLAYLISTS
   ========================= */
   const loadPlaylists = useCallback(async () => {
-    const res = await axios.get("/playlists", {
+    const res = await api.get("/playlists", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setPlaylists(res.data);
@@ -27,7 +27,7 @@ export default function Playlists() {
   const loadPlaylist = useCallback(async () => {
     if (!id) return;
 
-    const res = await axios.get(
+    const res = await api.get(
       `/playlists/${id}`,
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -49,7 +49,7 @@ export default function Playlists() {
      REMOVE FROM PLAYLIST
   ========================= */
   const removeFromPlaylist = async (videoId) => {
-    await axios.post(
+    await api.post(
       "/playlists/remove",
       { playlistId: id, videoId },
       { headers: { Authorization: `Bearer ${token}` } }

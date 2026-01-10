@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import ThreeDotMenu from "../../components/ThreeDotMenu";
 import "../../styles/admin.css";
@@ -23,7 +23,7 @@ export default function AdminChannels() {
      LOAD CHANNELS
   ====================== */
   const loadChannels = useCallback(() => {
-    axios
+    api
       .get("/channels", { headers })
       .then((res) => setChannels(res.data))
       .catch(() => setChannels([]));
@@ -39,7 +39,7 @@ export default function AdminChannels() {
   const createChannel = async () => {
     if (!name.trim()) return alert("Channel name required");
 
-    await axios.post(
+    await api.post(
       "/channels",
       { name },
       { headers }
@@ -56,7 +56,7 @@ export default function AdminChannels() {
     const newName = prompt("Enter new channel name", channel.name);
     if (!newName) return;
 
-    await axios.put(
+    await api.put(
       `/channels/${channel._id}`,
       { name: newName },
       { headers }
@@ -70,7 +70,7 @@ export default function AdminChannels() {
   ====================== */
   const deleteChannel = async (channel) => {
     try {
-      await axios.delete(
+      await api.delete(
         `/channels/${channel._id}`,
         { headers }
       );
@@ -84,7 +84,7 @@ export default function AdminChannels() {
         );
 
         if (ok) {
-          await axios.delete(
+          await api.delete(
             `/channels/${channel._id}?force=true`,
             { headers }
           );

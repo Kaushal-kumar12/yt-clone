@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import "../styles/playlistModal.css";
 
 export default function PlaylistModal({ videoId, onClose }) {
@@ -13,7 +13,7 @@ export default function PlaylistModal({ videoId, onClose }) {
      LOAD PLAYLISTS
   ===================== */
   useEffect(() => {
-    axios
+    api
       .get("/playlists", {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -33,14 +33,14 @@ export default function PlaylistModal({ videoId, onClose }) {
     try {
       if (hasVideo) {
         // REMOVE
-        await axios.post(
+        await api.post(
           `/playlists/${playlist._id}/remove`,
           { videoId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         // ADD
-        await axios.post(
+        await api.post(
           `/playlists/${playlist._id}/add`,
           { videoId },
           { headers: { Authorization: `Bearer ${token}` } }
@@ -71,7 +71,7 @@ export default function PlaylistModal({ videoId, onClose }) {
   const createPlaylist = async () => {
     if (!newName.trim()) return;
 
-    const res = await axios.post(
+    const res = await api.post(
       "/playlists",
       { name: newName, videoId },
       { headers: { Authorization: `Bearer ${token}` } }
