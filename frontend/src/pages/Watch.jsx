@@ -121,6 +121,22 @@ export default function Watch() {
       .catch(() => setVideo(null));
   }, [id]);
 
+  /* =====================
+   SAVE WATCH HISTORY
+===================== */
+  useEffect(() => {
+    if (!video?._id || !token) return;
+
+    api.post(
+      "/activity/watch",
+      { videoId: video._id },
+      { headers: { Authorization: `Bearer ${token}` } }
+    ).catch(() => {
+      // silent fail (optional)
+    });
+  }, [video?._id, token]);
+
+
   /* ✅ MARK PLAYED (NORMAL MODE ONLY) */
   useEffect(() => {
     if (!playlistId && video?._id) {
