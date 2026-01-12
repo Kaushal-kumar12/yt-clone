@@ -19,7 +19,11 @@ const Navbar = ({ toggleSidebar, isMobile, hideToggle }) => {
         )}
 
         <h2 style={styles.logo} onClick={() => navigate("/")}>
-          YouTube Clone
+          <img
+            src="/logo.png"
+            alt="YouTube Clone"
+            style={{ height: "32px", cursor: "pointer" }}
+          />
         </h2>
       </div>
 
@@ -76,7 +80,7 @@ const styles = {
   nav: {
     display: "flex",
     justifyContent: "space-between",
-    padding: "12px 16px",
+    padding: "6px 8px",
     borderBottom: "1px solid #e5e5e5",
     background: "#fff",
     position: "sticky",
@@ -88,7 +92,7 @@ const styles = {
   logo: { cursor: "pointer" },
   search: {
     width: "40%",
-    padding: "8px 14px",
+    padding: "8px 10px",
     borderRadius: 20,
     border: "1px solid #ccc",
   },
