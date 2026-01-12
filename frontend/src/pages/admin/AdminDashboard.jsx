@@ -22,9 +22,9 @@ export default function AdminDashboard() {
     async function loadStats() {
       try {
         const [usersRes, channelsRes, videosRes] = await Promise.all([
-          api.get("http://localhost:5000/api/admin/users", { headers }),
-          api.get("http://localhost:5000/api/channels", { headers }),
-          api.get("http://localhost:5000/api/videos/admin/all", { headers }),
+          api.get("/admin/users", { headers }),
+          api.get("/channels", { headers }),
+          api.get("/videos/admin/all", { headers }),
         ]);
 
         const users = usersRes.data || [];
