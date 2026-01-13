@@ -56,6 +56,9 @@ app.use("/api/recommend", require("./routes/recommendRoutes"));
 // ADMIN
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/admin", require("./routes/adminUserRoutes"));
+// UTILS
+app.use("/api/utils", require("./routes/utilsRoutes"));
+
 
 /* ======================
    HEALTH CHECK (OPTIONAL)

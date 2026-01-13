@@ -14,6 +14,14 @@ export default function AdminChannelDetail() {
   const [channel, setChannel] = useState(null);
   const [videos, setVideos] = useState([]);
 
+  // upload form state (NEW)
+  const [newTitle, setNewTitle] = useState("");
+  const [newYoutubeId, setNewYoutubeId] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [newTags, setNewTags] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+
   // edit form
   const [editingId, setEditingId] = useState(null);
   const [title, setTitle] = useState("");
@@ -28,6 +36,19 @@ export default function AdminChannelDetail() {
     () => ({ Authorization: `Bearer ${token}` }),
     [token]
   );
+
+  /* ======================
+     FETCH VIDEO TITLE
+  ====================== */
+  const fetchTitle = async (url) => {
+    try {
+      const res = await api.get("/utils/youtube-meta", {
+        params: { url },
+      });
+      setNewTitle(res.data.title);
+    } catch { }
+  };
+
 
   /* ======================
      LOAD CHANNEL
@@ -117,6 +138,42 @@ export default function AdminChannelDetail() {
     loadVideos();
   };
 
+  const uploadNewVideo = async () => {
+    if (!newTitle || !newYoutubeId) {
+      alert("Title and YouTube ID required");
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      await api.post(
+        "/videos",
+        {
+          title: newTitle,
+          youtubeId: newYoutubeId,
+          category: newCategory,
+          channel: channelId, // 🔥 AUTO channel
+          tags: newTags.split(",").map(t => t.trim()),
+        },
+        { headers }
+      );
+
+      // reset form
+      setNewTitle("");
+      setNewYoutubeId("");
+      setNewCategory("");
+      setNewTags("");
+
+      loadVideos(); // 🔄 refresh list
+    } catch (err) {
+      alert("Failed to upload video");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+
   /* ======================
      UI
   ====================== */
@@ -125,6 +182,47 @@ export default function AdminChannelDetail() {
   return (
     <div className="admin-page">
       <h2>📁 {channel.name}</h2>
+
+      {/* ======================
+        UPLOAD NEW VIDEO (INLINE)
+      ====================== */}
+      <div className="admin-edit-form">
+        <h3>Add New Video</h3>
+
+        <input
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          placeholder="Title"
+        />
+
+        <input
+          value={newYoutubeId}
+          onChange={(e) => {
+            setNewYoutubeId(e.target.value);
+            fetchTitle(e.target.value);
+          }}
+          placeholder="YouTube URL / ID"
+        />
+
+
+        <input
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+          placeholder="Category"
+        />
+
+        <input
+          value={newTags}
+          onChange={(e) => setNewTags(e.target.value)}
+          placeholder="Tags (comma separated)"
+        />
+
+        <button onClick={uploadNewVideo} disabled={uploading}>
+          {uploading ? "Uploading..." : "Upload Video"}
+        </button>
+      </div>
+
+
       <p>Total Videos: {videos.length}</p>
 
       {/* ======================
