@@ -3,6 +3,8 @@ const Video = require("../models/Video");
 const auth = require("../middleware/authMiddleware");
 const admin = require("../middleware/adminMiddleware");
 const Channel = require("../models/Channel");
+const UserHistory = require("../models/UserHistory");
+const authOptional = require("../middleware/authOptional");
 
 const router = express.Router();
 
@@ -173,14 +175,93 @@ router.put("/:id/publish", auth, admin, async (req, res) => {
    PUBLIC ROUTES
 ========================= */
 
-// ✅ HOME FEED (ONLY PUBLISHED)
-router.get("/home", async (req, res) => {
-  const videos = await Video.find({ published: true })
-    .populate("channel")
-    .sort({ createdAt: -1 });
+/* =========================
+   🤖 AI HOME FEED
+========================= */
+router.get("/home", authOptional, async (req, res) => {
+  try {
+    // 👤 Guest → Trending
+    if (!req.user) {
+      const trending = await Video.find({ published: true })
+        .sort({ views: -1 })
+        .limit(20);
+      return res.json(trending);
+    }
 
-  res.json(videos);
+    const history = await UserHistory.find({ user: req.user.id })
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    // No history → Trending
+    if (!history.length) {
+      const trending = await Video.find({ published: true })
+        .sort({ views: -1 })
+        .limit(20);
+      return res.json(trending);
+    }
+
+    // 🔥 Build interest profile
+    const categoryScore = {};
+    const subCategoryScore = {};
+
+    history.forEach(h => {
+      if (h.category) {
+        categoryScore[h.category] =
+          (categoryScore[h.category] || 0) + 1;
+      }
+
+      if (h.subCategory) {
+        subCategoryScore[h.subCategory] =
+          (subCategoryScore[h.subCategory] || 0) + 1;
+      }
+    });
+
+    const topCategory = Object.keys(categoryScore).sort(
+      (a, b) => categoryScore[b] - categoryScore[a]
+    )[0];
+
+    const topSubCategory = Object.keys(subCategoryScore).sort(
+      (a, b) => subCategoryScore[b] - subCategoryScore[a]
+    )[0];
+
+    // 🎯 Primary interest
+    let primaryQuery = {
+      published: true,
+      category: topCategory,
+    };
+
+    if (topCategory === "songs" && topSubCategory) {
+      primaryQuery.subCategory = topSubCategory;
+    }
+
+    const primary = await Video.find(primaryQuery).limit(12);
+
+    // 🌍 Diversity
+    const mixed = await Video.aggregate([
+      { $match: { published: true } },
+      { $sample: { size: 8 } },
+    ]);
+
+    res.json([...primary, ...mixed]);
+  } catch (err) {
+    console.error("HOME AI ERROR:", err);
+    res.status(500).json([]);
+  }
 });
+
+// ALL VIDEOS (PUBLIC)
+router.get("/all", async (req, res) => {
+  try {
+    const videos = await Video.find({ published: true })
+      .populate("channel")
+      .sort({ createdAt: -1 });
+
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load videos" });
+  }
+});
+
 
 // ✅ SINGLE VIDEO
 router.get("/:id", async (req, res) => {

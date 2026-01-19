@@ -345,7 +345,7 @@ export default function Watch() {
             </div>
           </div>
 
-          {upNext && autoplay && (
+          {token &&  upNext && autoplay && (
             <div
               className="suggest-card"
               style={{ marginTop: 12 }}

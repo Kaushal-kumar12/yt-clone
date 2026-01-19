@@ -1,4 +1,3 @@
-// models/UserHistory.js
 const mongoose = require("mongoose");
 
 const historySchema = new mongoose.Schema(
@@ -9,16 +8,25 @@ const historySchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+
     video: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Video",
       required: true,
       index: true,
     },
+
+    category: {
+      type: String,
+      index: true,
+    },
+
+    subCategory: {
+      type: String,
+      index: true,
+    },
   },
-  {
-    timestamps: true, // 🔥 REQUIRED for date-based history
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("UserHistory", historySchema);

@@ -15,11 +15,30 @@ const videoSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
+      enum: [
+        "news",
+        "songs",
+        "entertainment",
+        "education",
+        "technology",
+        "sports",
+        "movies",
+        "other",
+      ],
+      index: true,
+    },
+
+    // 🔥 SONG INTELLIGENCE
+    subCategory: {
+      type: String,
+      index: true,
+      // sad | love | breakup | emotional | party | romantic | 90s
     },
 
     tags: {
       type: [String],
       default: [],
+      index: true,
     },
 
     channel: {
@@ -33,13 +52,19 @@ const videoSchema = new mongoose.Schema(
       default: 0,
     },
 
-    // ✅ FIX: visible by default
     published: {
       type: Boolean,
       default: true,
+      index: true,
     },
   },
   { timestamps: true }
 );
+
+videoSchema.index({
+  title: "text",
+  tags: "text",
+  category: "text",
+});
 
 module.exports = mongoose.model("Video", videoSchema);

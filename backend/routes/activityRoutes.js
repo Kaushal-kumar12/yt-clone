@@ -1,41 +1,42 @@
 const express = require("express");
-const router = express.Router();
 const auth = require("../middleware/authMiddleware");
 const UserHistory = require("../models/UserHistory");
+const Video = require("../models/Video");
+
+const router = express.Router();
 
 /* =========================
-   SAVE WATCH HISTORY
+   SAVE WATCH HISTORY (AI)
 ========================= */
 router.post("/watch", auth, async (req, res) => {
   try {
     const { videoId } = req.body;
 
-    if (!videoId) {
-      return res.status(400).json({ message: "Video ID required" });
-    }
+    const video = await Video.findById(videoId);
+    if (!video) return res.json({ success: true });
 
-    // Prevent duplicate same-day entry
+    // prevent duplicate same-day watch
     const today = new Date().toISOString().slice(0, 10);
 
     const exists = await UserHistory.findOne({
       user: req.user.id,
       video: videoId,
-      createdAt: {
-        $gte: new Date(today),
-      },
+      createdAt: { $gte: new Date(today) },
     });
 
     if (!exists) {
       await UserHistory.create({
         user: req.user.id,
-        video: videoId,
+        video: video._id,
+        category: video.category,
+        subCategory: video.subCategory || null,
       });
     }
 
     res.json({ success: true });
   } catch (err) {
     console.error("WATCH HISTORY ERROR:", err);
-    res.status(500).json({ message: "Failed to save history" });
+    res.status(500).json({ success: false });
   }
 });
 
@@ -44,14 +45,18 @@ router.post("/watch", auth, async (req, res) => {
 ========================= */
 router.get("/history", auth, async (req, res) => {
   try {
-    const history = await UserHistory.find({ user: req.user.id })
-      .populate("video")
+    const history = await UserHistory.find({
+      user: req.user.id,
+    })
+      .populate("video")           // 🔥 REQUIRED for frontend
       .sort({ createdAt: -1 });
 
     res.json(history);
   } catch (err) {
-    res.status(500).json({ message: "Failed to load history" });
+    console.error("HISTORY FETCH ERROR:", err);
+    res.status(500).json([]);
   }
 });
+
 
 module.exports = router;

@@ -1,37 +1,45 @@
 const express = require("express");
 const Video = require("../models/Video");
-const auth = require("../middleware/authMiddleware");
+const authOptional = require("../middleware/authOptional");
 
 const router = express.Router();
 
-/* ===============================
-   WATCH PAGE RECOMMENDATION
-================================ */
-
-router.get("/watch/:id", auth, async (req, res) => {
+/* =========================
+   🤖 WATCH PAGE SUGGESTIONS
+========================= */
+router.get("/watch/:id", authOptional, async (req, res) => {
   try {
-    const currentVideo = await Video.findById(req.params.id);
+    const current = await Video.findById(req.params.id);
+    if (!current) return res.json([]);
 
-    if (!currentVideo) {
-      return res.status(404).json([]);
+    let related;
+
+    // 🎵 SONG LOGIC
+    if (current.category === "songs" && current.subCategory) {
+      related = await Video.find({
+        _id: { $ne: current._id },
+        published: true,
+        category: "songs",
+        subCategory: current.subCategory,
+      }).limit(10);
+    } else {
+      related = await Video.find({
+        _id: { $ne: current._id },
+        published: true,
+        category: current.category,
+      }).limit(10);
     }
 
-    // 80% related
-    const related = await Video.find({
-      category: currentVideo.category,
-      _id: { $ne: currentVideo._id },
-    }).limit(8);
-
-    // 20% mixed
-    const mixed = await Video.aggregate([
-      { $match: { category: { $ne: currentVideo.category } } },
-      { $sample: { size: 4 } },
+    // 🌍 Diversity
+    const random = await Video.aggregate([
+      { $match: { published: true } },
+      { $sample: { size: 5 } },
     ]);
 
-    res.json([...related, ...mixed]);
+    res.json([...related, ...random]);
   } catch (err) {
-    console.error("Recommendation error:", err);
-    res.status(500).json([]);
+    console.error("WATCH AI ERROR:", err);
+    res.json([]);
   }
 });
 

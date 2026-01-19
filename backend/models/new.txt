@@ -1,0 +1,196 @@
+Activity.js
+
+const mongoose = require("mongoose");
+
+const activitySchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  video: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Video",
+  },
+  type: {
+    type: String, // "like" | "watch"
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+module.exports = mongoose.model("Activity", activitySchema);
+
+
+
+activityRoutes.js
+
+const express = require("express");
+const router = express.Router();
+const auth = require("../middleware/authMiddleware");
+const UserHistory = require("../models/UserHistory");
+
+/* =========================
+   SAVE WATCH HISTORY
+========================= */
+router.post("/watch", auth, async (req, res) => {
+  try {
+    const { videoId } = req.body;
+
+    if (!videoId) {
+      return res.status(400).json({ message: "Video ID required" });
+    }
+
+    // Prevent duplicate same-day entry
+    const today = new Date().toISOString().slice(0, 10);
+
+    const exists = await UserHistory.findOne({
+      user: req.user.id,
+      video: videoId,
+      createdAt: {
+        $gte: new Date(today),
+      },
+    });
+
+    if (!exists) {
+      await UserHistory.create({
+        user: req.user.id,
+        video: videoId,
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("WATCH HISTORY ERROR:", err);
+    res.status(500).json({ message: "Failed to save history" });
+  }
+});
+
+/* =========================
+   GET WATCH HISTORY
+========================= */
+router.get("/history", auth, async (req, res) => {
+  try {
+    const history = await UserHistory.find({ user: req.user.id })
+      .populate("video")
+      .sort({ createdAt: -1 });
+
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load history" });
+  }
+});
+
+module.exports = router;
+
+
+channelRoutes.js
+
+const express = require("express");
+const Channel = require("../models/Channel");
+const Video = require("../models/Video");
+const auth = require("../middleware/authMiddleware");
+const admin = require("../middleware/adminMiddleware");
+
+const router = express.Router();
+
+/* =========================
+   CREATE CHANNEL
+========================= */
+router.post("/", auth, admin, async (req, res) => {
+  try {
+    if (!req.body.name) {
+      return res.status(400).json({ message: "Channel name required" });
+    }
+
+    const channel = await Channel.create({ name: req.body.name });
+    res.json(channel);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to create channel" });
+  }
+});
+
+/* =========================
+   GET ALL CHANNELS
+========================= */
+router.get("/", auth, admin, async (req, res) => {
+  try {
+    const channels = await Channel.find().sort({ createdAt: -1 });
+    res.json(channels);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch channels" });
+  }
+});
+
+/* =========================
+   RENAME CHANNEL
+========================= */
+router.put("/:id", auth, admin, async (req, res) => {
+  try {
+    const channel = await Channel.findByIdAndUpdate(
+      req.params.id,
+      { name: req.body.name },
+      { new: true }
+    );
+
+    if (!channel) {
+      return res.status(404).json({ message: "Channel not found" });
+    }
+
+    res.json(channel);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to rename channel" });
+  }
+});
+
+/* =========================
+   DELETE CHANNEL
+   ?force=true → delete channel + videos
+========================= */
+router.delete("/:id", auth, admin, async (req, res) => {
+  try {
+    const channelId = req.params.id;
+    const force = req.query.force === "true";
+
+    const videosCount = await Video.countDocuments({ channel: channelId });
+
+    if (videosCount > 0 && !force) {
+      return res.status(400).json({
+        requireConfirm: true,
+        message: "Channel contains videos",
+        count: videosCount,
+      });
+    }
+
+    await Video.deleteMany({ channel: channelId });
+    await Channel.findByIdAndDelete(channelId);
+
+    res.json({ message: "Channel deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete channel" });
+  }
+});
+
+module.exports = router;
+
+
+commentRoutes.js
+
+const express = require("express");
+const Comment = require("../models/Comment");
+const auth = require("../middleware/authMiddleware");
+const admin = require("../middleware/adminMiddleware");
+
+const router = express.Router();
+
+// DELETE COMMENT
+router.delete("/:id", auth, admin, async (req, res) => {
+  await Comment.findByIdAndDelete(req.params.id);
+  res.json({ message: "Comment deleted" });
+});
+
+module.exports = router;
+
+
+
