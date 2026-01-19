@@ -13,6 +13,7 @@ export default function AdminUpload() {
   const [title, setTitle] = useState("");
   const [youtubeId, setYoutubeId] = useState("");
   const [category, setCategory] = useState("");
+  const [subCategory, setSubCategory] = useState("");
   const [tags, setTags] = useState("");
   const [channelId, setChannelId] = useState("");
   const [published, setPublished] = useState(true);
@@ -22,6 +23,18 @@ export default function AdminUpload() {
   const [editingId, setEditingId] = useState(null);
 
   const [bulkLinks, setBulkLinks] = useState("");
+
+  const CATEGORY_OPTIONS = [
+  "news",
+  "songs",
+  "entertainment",
+  "education",
+  "technology",
+  "sports",
+  "movies",
+  "other",
+];
+
 
   /* ======================
      HEADERS
@@ -41,6 +54,7 @@ export default function AdminUpload() {
       setTitle(v.title);
       setYoutubeId(v.youtubeId);
       setCategory(v.category || "");
+      setSubCategory(v.subCategory || "");
       setTags(v.tags?.join(", ") || "");
       setChannelId(v.channel?._id || "");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -124,7 +138,11 @@ export default function AdminUpload() {
       channel: channelId,
       tags: tags.split(",").map(t => t.trim()),
       published,
+      ...(category === "songs" && subCategory
+        ? { subCategory }
+        : {}),
     };
+
 
     if (editingId) {
       await api.put(`/videos/${editingId}`, payload, { headers });
@@ -170,7 +188,11 @@ export default function AdminUpload() {
           {
             title,
             youtubeId: link,
-            category: category || "General", // ✅ REQUIRED
+            category: category || "other",
+            ...(category === "songs" && subCategory
+              ? { subCategory }
+              : {}),
+
             tags: [],
             channel: channelId,
             published,
@@ -195,6 +217,7 @@ export default function AdminUpload() {
     setTitle("");
     setYoutubeId("");
     setCategory("");
+    setSubCategory("");
     setTags("");
     setChannelId("");
     setEditingId(null);
@@ -257,7 +280,21 @@ export default function AdminUpload() {
           placeholder="YouTube URL / ID"
         />
 
-        <input value={category} onChange={e => setCategory(e.target.value)} placeholder="Category" />
+        <select value={category} onChange={e => setCategory(e.target.value)}>
+          <option value="">Select Category</option>
+          {CATEGORY_OPTIONS.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        {category === "songs" && (
+          <input
+            value={subCategory}
+            onChange={e => setSubCategory(e.target.value)}
+            placeholder="Sub-category (e.g. love_song, sad_song, remix)"
+          />
+        )}
+
+
         <input value={tags} onChange={e => setTags(e.target.value)} placeholder="Tags" />
 
         <select value={channelId} onChange={e => setChannelId(e.target.value)}>
